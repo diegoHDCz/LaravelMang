@@ -71,6 +71,50 @@ class ReservationController extends Controller
         return $array;
     }
 
+    public function DisabledDates($id) {
+        $array = ['error'=>'', 'list'=> []];
+        $area = Area::find($id);
+
+        if($area){        
+        $disabledDays = AreaDisabledDay::where('id_area', $id)->get();
+        foreach($disabledDays as $disabledDay){
+            $array['list'][] = $disabledDay['day'];
+        }
+
+        $allowedDays = explode(',', $area['days']);
+        $offDays =[];
+        for($q=0;$q<7;$q++) {
+            if(!in_array($q, $allowedDays)) {
+                $offDays[] = $q;
+            }
+        }
+
+        $start = time();
+        $end = strtotime('+3 months');
+       
+
+        for(
+            $current = $start;
+            $current < $end;
+            $current = strtotime('+1 day', $current)
+        ){
+            $wd = date('w', $current);
+            if(in_array($wd, $offDays)) {
+                $array['list'][] = date('Y-m-d', $current);
+            }
+
+            $current = strtotime('+1 day', $current);
+        }
+
+    } else{
+        $array['error']='Área inexistente';
+        return $array;
+    }
+        
+
+        return $array;
+    }
+
     public function getMyReservations($id, Request $request) {
         $array =['error'=>''];
         $validator = Validator::make($request->all(), [
@@ -145,4 +189,5 @@ class ReservationController extends Controller
 
         return $array;
     }
+
 }
